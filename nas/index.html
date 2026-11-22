@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raggi X dai buchi neri</title>
+<style>
+  :root {
+    --fondo: #0d1424; --pannello: #16203a; --riga: #1d2947; --testo: #e9edf5; --tenue: #9fb0cc;
+    --oro: #f2c14e; --nuova: #e63946; --esplosione: #f4a261; --aumento: #e9c46a; --calo: #8ecae6;
+    --calma: #9aa5b1; --debole: #5c677d; --vecchi: #b8a1e3; --bordo: #2c3a5e;
+    font-size: 150%;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--testo);
+         font-family: "Inter", "Noto Sans", "DejaVu Sans", system-ui, sans-serif; line-height: 1.45; }
+  header { padding: 1rem 1.4rem 0.6rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem;
+           border-bottom: 1px solid var(--bordo); }
+  header h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+  header h1 span { color: var(--oro); }
+  .sotto { color: var(--tenue); font-size: 0.85rem; }
+  .comandi { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; }
+  button, select, input { font: inherit; font-size: 0.9rem; color: var(--testo); background: var(--riga);
+           border: 1px solid var(--bordo); border-radius: 0.4rem; padding: 0.3rem 0.7rem; }
+  button { cursor: pointer; } button:hover { border-color: var(--oro); }
+  button.attivo { background: var(--oro); color: #1a1a1a; border-color: var(--oro); }
+  main { padding: 0.8rem 1.4rem 2rem; max-width: 110rem; margin: 0 auto; }
+  section { margin: 1.2rem 0 1.8rem; }
+  h2 { font-size: 1.15rem; margin: 0 0 0.6rem; color: var(--oro); font-weight: 600; }
+  .avviso { background: #3a1d24; border: 1px solid var(--nuova); border-radius: 0.6rem; padding: 0.7rem 1rem;
+            margin-bottom: 0.6rem; cursor: pointer; }
+  .avviso b { color: #ffb3b3; }
+  .vuoto { color: var(--tenue); font-style: italic; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { padding: 0.35rem 0.6rem; text-align: left; border-bottom: 1px solid var(--bordo); }
+  th { color: var(--tenue); font-weight: 600; cursor: pointer; user-select: none; background: var(--fondo);
+       vertical-align: bottom; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td:first-child, td:nth-child(3), td:last-child { white-space: nowrap; }
+  tbody tr { cursor: pointer; } tbody tr:hover { background: var(--riga); }
+  .pallino { display: inline-block; width: 0.75em; height: 0.75em; border-radius: 50%; margin-right: 0.4em;
+             vertical-align: -0.05em; }
+  .filtri { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.6rem; }
+  /* due colonne solo se c'è spazio: la misura è in rem, quindi con il testo grande si passa a una colonna */
+  .griglia { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 40rem), 1fr)); gap: 1.4rem; }
+  .griglia > section { min-width: 0; }
+  .tabella { overflow-x: auto; max-width: 100%; }
+  img.mappa { display: block; width: 100%; max-width: 1300px; margin: 0 auto; border-radius: 0.5rem; background: #fff; }
+  .notizia { padding: 0.45rem 0; border-bottom: 1px solid var(--bordo); font-size: 0.88rem; }
+  .notizia a { color: var(--testo); } .notizia .data { color: var(--tenue); font-size: 0.8rem; }
+  .etichetta { display: inline-block; font-size: 0.75rem; background: var(--riga); border: 1px solid var(--bordo);
+               border-radius: 0.3rem; padding: 0 0.35rem; margin: 0 0.2rem; color: var(--oro); cursor: pointer; }
+  #scheda { position: fixed; inset: 0; background: rgba(5, 8, 16, 0.82); display: none; z-index: 10;
+            overflow-y: auto; padding: 1.2rem; }
+  #scheda .dentro { background: var(--pannello); max-width: 90rem; margin: 0 auto; border-radius: 0.8rem;
+            padding: 1rem 1.4rem 1.4rem; border: 1px solid var(--bordo); }
+  #scheda h2 { font-size: 1.4rem; display: flex; align-items: center; gap: 1rem; }
+  #scheda .chiudi { margin-left: auto; }
+  #scheda img { display: block; margin: 0 auto; max-width: 100%; max-height: 70vh; background: #fff;
+                border-radius: 0.4rem; min-height: 10rem; }
+  #spiegazione { white-space: pre-wrap; font-size: 0.95rem; margin: 0.6rem 0 0.8rem; }
+  .collegamenti a { color: var(--oro); margin-right: 1.2rem; }
+  .come { color: var(--tenue); font-size: 0.85rem; }
+  footer { color: var(--tenue); font-size: 0.8rem; padding: 1rem 1.4rem 2rem; border-top: 1px solid var(--bordo); }
+  footer a { color: var(--tenue); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Raggi X <span>dai buchi neri</span></h1>
+  <div class="sotto" id="statoServizio">Carico…</div>
+  <div class="comandi">
+    <span class="sotto">Testo</span>
+    <button id="piccolo" title="Testo più piccolo">A−</button>
+    <button id="grande" title="Testo più grande">A+</button>
+  </div>
+</header>
+<main>
+  <section>
+    <h2>Nuove esplosioni</h2>
+    <div id="nuove"><div class="vuoto">Nessuna nuova esplosione negli ultimi 30 giorni.</div></div>
+  </section>
+
+  <div class="griglia">
+    <section>
+      <h2>Accese adesso</h2>
+      <div class="tabella"><table><thead><tr><th>Sorgente</th><th>Tipo</th><th>Stato</th><th class="num">Oggi</th>
+        <th class="num">Di solito</th><th class="num" title="Quante volte brilla più del solito: Oggi diviso Di solito">Volte il solito</th><th>Dal</th></tr></thead>
+        <tbody id="accese"></tbody></table></div>
+      <h2 style="margin-top:1.4rem">Preferite</h2>
+      <div class="tabella"><table><thead><tr><th>Sorgente</th><th>Tipo</th><th>Stato</th><th class="num">Oggi</th>
+        <th class="num">Di solito</th><th class="num" title="Quante volte brilla più del solito: Oggi diviso Di solito">Volte il solito</th><th>Ultima misura</th></tr></thead>
+        <tbody id="preferite"></tbody></table></div>
+    </section>
+    <section>
+      <h2>Il cielo X adesso</h2>
+      <img class="mappa" id="mappa" src="mappa.png" alt="Mappa del cielo X">
+      <p class="come">Mappa della Via Lattea vista da MAXI: il piano della Galassia è la riga centrale, il suo
+        centro in mezzo. Più grande il pallino, più la sorgente brilla. Le binarie X si affollano sul piano;
+        le galassie attive sono sparse ovunque.</p>
+      <h2 style="margin-top:1.2rem">Notizie (ATel e GCN)</h2>
+      <div id="notizie"></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Tutte le sorgenti</h2>
+    <div class="filtri">
+      <input id="cerca" placeholder="Cerca un nome…" size="18">
+      <select id="filtroStato"><option value="">tutti gli stati</option></select>
+      <select id="filtroTipo"><option value="">tutti i tipi</option></select>
+      <span class="sotto" id="contaTutte"></span>
+    </div>
+    <div class="tabella"><table><thead><tr>
+      <th data-c="nome">Sorgente</th><th data-c="tipo">Tipo</th><th data-c="stato">Stato</th>
+      <th data-c="oggi" class="num">Oggi</th><th data-c="abituale" class="num">Di solito</th>
+      <th data-c="rapporto" class="num" title="Quante volte brilla più del solito: Oggi diviso Di solito">Volte il solito</th><th data-c="ultimo_mjd">Ultima misura</th></tr></thead>
+      <tbody id="tutte"></tbody></table></div>
+  </section>
+
+  <section class="come">
+    <h2>Come si legge</h2>
+    <p><b>Oggi</b> è la luminosità media degli ultimi 3 giorni nei raggi X da 2 a 20 keV, misurata da MAXI
+      (sulla Stazione Spaziale Internazionale), in <b>mCrab</b>: millesimi della Nebulosa del Granchio, la «candela»
+      standard dei raggi X. <b>Di solito</b> è il livello abituale nell'ultimo anno; <b>Volte il solito</b> è
+      Oggi diviso Di solito (2 = il doppio del solito; 0,5 = la metà; «∞» = di solito non si vede affatto).</p>
+    <p><b>NUOVA ESPLOSIONE</b>: si è accesa da meno di 3 settimane (il PC riceve un avviso).
+      <b>In esplosione</b>: accesa da più tempo. <b>In aumento</b> / <b>in calo</b>: cambia più del normale.
+      <b>Troppo debole</b>: ora MAXI non la vede. <b>Dati vecchi</b>: MAXI non la misura da più di 2 settimane
+      (non osserva tutto il cielo ogni giorno).</p>
+    <p>Un buco nero in esplosione di solito parte con uno spettro <b>duro</b> (molti raggi X energetici), diventa
+      più luminoso, poi passa allo stato <b>morbido</b> (domina il disco di gas caldissimo) e, mentre si spegne,
+      torna duro: nel diagramma durezza-intensità disegna una «q» rovesciata.</p>
+  </section>
+</main>
+
+<div id="scheda"><div class="dentro">
+  <h2><span id="schedaNome"></span><span class="sotto" id="schedaTipo"></span>
+    <button class="chiudi" onclick="chiudiScheda()">Chiudi ✕</button></h2>
+  <div class="filtri" id="periodi">
+    <button data-g="60">60 giorni</button><button data-g="365" class="attivo">1 anno</button>
+    <button data-g="1826">5 anni</button><button data-g="0">tutto</button>
+  </div>
+  <img id="schedaGrafico" alt="Curva di luce">
+  <div id="spiegazione"></div>
+  <div class="collegamenti" id="schedaLink"></div>
+  <div id="schedaNotizie" style="margin-top:0.8rem"></div>
+</div></div>
+
+<footer>© 2026 Edoardo Battistel · Dati: <a href="https://maxi.riken.jp">MAXI</a> (RIKEN/JAXA),
+  <a href="https://gammaray.nsstc.nasa.gov/gbm/science/earth_occ.html">Fermi GBM</a> (NASA/MSFC),
+  <a href="https://swift.gsfc.nasa.gov/results/transients/">Swift/BAT</a> (NASA, missione finita il 20/10/2026),
+  <a href="https://www.astronomerstelegram.org/">ATel</a>, <a href="https://gcn.nasa.gov/circulars">GCN</a>.
+  <span id="versione"></span></footer>
+
+<script>
+"use strict";
+const STATI = {nuova: "NUOVA ESPLOSIONE", esplosione: "in esplosione", aumento: "in aumento", calo: "in calo",
+  calma: "calma", debole: "troppo debole", vecchi: "dati vecchi", pochi: "pochi dati"};
+const ORDINE = {nuova: 0, esplosione: 1, aumento: 2, calo: 3, calma: 4, vecchi: 5, debole: 6, pochi: 7};
+let dati = {sorgenti: []}, notizie = [], eventi = [], perId = {}, ordinaPer = "stato", verso = 1, scelta = null;
+
+// --- dimensione del testo (ricordata in questo browser) ---
+function leggiDim() { try { return parseInt(localStorage.getItem("rx_dim")) || 150; } catch (e) { return 150; } }
+function scriviDim(v) { try { localStorage.setItem("rx_dim", v); } catch (e) {} }
+let dim = leggiDim();
+function applicaDim() { document.documentElement.style.fontSize = dim + "%"; }
+applicaDim();
+document.getElementById("piccolo").onclick = () => { dim = Math.max(80, dim - 10); applicaDim(); scriviDim(dim); };
+document.getElementById("grande").onclick = () => { dim = Math.min(250, dim + 10); applicaDim(); scriviDim(dim); };
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+function num(v, u) {
+  if (v === null || v === undefined) return "";
+  if (u !== "mCrab") return v.toFixed(3);
+  if (v <= 0.5) return "≈0";
+  return v >= 100 ? Math.round(v).toLocaleString("it-IT") : v.toFixed(0);
+}
+function volte(r) { return r.rapporto === null || r.rapporto === undefined ? (r.stato === "nuova" || r.stato === "esplosione" ? "∞" : "")
+  : r.rapporto.toFixed(1).replace(".", ","); }
+function pallino(st) { return `<span class="pallino" style="background:var(--${st === "pochi" ? "debole" : st})"></span>`; }
+function riga(r, ultima) {
+  const dal = r.esplosione ? r.esplosione.inizio : "";
+  return `<tr onclick="apri('${r.id}')"><td>${pallino(r.stato)}${esc(r.nome)}</td><td>${esc(r.tipo)}</td>
+    <td>${STATI[r.stato] || ""}</td><td class="num">${num(r.oggi, r.unita)}</td><td class="num">${num(r.abituale, r.unita)}</td>
+    <td class="num">${volte(r)}</td><td>${ultima ? esc(r.ultimo || "") : esc(dal)}</td></tr>`;
+}
+
+async function prendi(url) { const r = await fetch(url + "?t=" + Date.now()); if (!r.ok) throw new Error(url); return r.json(); }
+
+async function aggiorna() {
+  try {
+    const st = await prendi("dati/stato.json");
+    const quando = new Date(st.aggiornato_utc);
+    const vecchio = (Date.now() - quando) / 3600e3 > 1;
+    let testo = `Servizio ${vecchio ? "<b style='color:var(--nuova)'>FERMO</b> dal" : "attivo, ultimo segnale"} ` +
+      quando.toLocaleString("it-IT", {dateStyle: "short", timeStyle: "short"}) +
+      ` · ${st.sorgenti} sorgenti` + (st.fase && st.fase !== "in attesa" ? ` · sto aggiornando: ${esc(st.fase)} ${esc(st.avanzamento || "")}` : "");
+    if (st.ultimo_giro_maxi_utc) testo += ` · MAXI aggiornato ${new Date(st.ultimo_giro_maxi_utc).toLocaleString("it-IT", {dateStyle: "short", timeStyle: "short"})}`;
+    document.getElementById("statoServizio").innerHTML = testo;
+    document.getElementById("versione").textContent = "· Raggi X dai buchi neri " + st.versione;
+  } catch (e) { document.getElementById("statoServizio").textContent = "Il servizio non risponde."; }
+  try { dati = await prendi("dati/sorgenti.json"); } catch (e) {}
+  try { notizie = (await prendi("dati/notizie.json")).notizie || []; } catch (e) {}
+  try { eventi = (await prendi("dati/eventi.json")).eventi || []; } catch (e) {}
+  perId = {}; (dati.sorgenti || []).forEach(r => perId[r.id] = r);
+  document.getElementById("mappa").src = "mappa.png?t=" + Date.now();
+  disegna();
+}
+
+function disegna() {
+  const S = dati.sorgenti || [];
+  // nuove esplosioni (avvisi degli ultimi 30 giorni)
+  const limite = Date.now() - 30 * 864e5;
+  const ev = eventi.filter(e => new Date(e.rilevato_utc) > limite).reverse();
+  document.getElementById("nuove").innerHTML = ev.length ? ev.map(e =>
+    `<div class="avviso" onclick="apri('${e.sorgente}')"><b>${esc(e.nome)}</b> (${esc(e.tipo)}): nuova esplosione dal ${esc(e.inizio)},
+     oggi ${num(e.oggi, e.unita)} ${esc(e.unita)}${e.rapporto ? ", " + e.rapporto.toFixed(0) + " volte il solito" : ""}.
+     <span class="sotto">Segnalata il ${new Date(e.rilevato_utc).toLocaleString("it-IT", {dateStyle: "short", timeStyle: "short"})}</span></div>`).join("")
+    : '<div class="vuoto">Nessuna nuova esplosione negli ultimi 30 giorni.</div>';
+  const accese = S.filter(r => ["nuova", "esplosione", "aumento"].includes(r.stato))
+    .sort((a, b) => ORDINE[a.stato] - ORDINE[b.stato] || (b.oggi || 0) - (a.oggi || 0));
+  document.getElementById("accese").innerHTML = accese.length ? accese.map(r => riga(r, false)).join("")
+    : '<tr><td colspan="7" class="vuoto">Nessuna sorgente accesa più del solito.</td></tr>';
+  document.getElementById("preferite").innerHTML = S.filter(r => r.preferita).map(r => riga(r, true)).join("");
+  // notizie
+  document.getElementById("notizie").innerHTML = notizie.slice(-25).reverse().map(x => {
+    const tag = (x.sorgenti || []).map(id => perId[id] ? `<span class="etichetta" onclick="apri('${id}')">${esc(perId[id].nome)}</span>` : "").join("");
+    return `<div class="notizia"><a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.titolo)}</a> ${tag}
+      <div class="data">${esc(x.fonte)} · ${esc((x.data || "").replace("T", " ").slice(0, 16))}</div></div>`;
+  }).join("") || '<div class="vuoto">Ancora nessuna notizia.</div>';
+  // filtri
+  const fs = document.getElementById("filtroStato"), ft = document.getElementById("filtroTipo");
+  if (fs.options.length === 1) Object.entries(STATI).forEach(([k, v]) => fs.add(new Option(v, k)));
+  const tipi = [...new Set(S.map(r => r.tipo))].sort();
+  if (ft.options.length - 1 !== tipi.length) { ft.length = 1; tipi.forEach(t => ft.add(new Option(t, t))); }
+  disegnaTutte();
+  if (scelta && document.getElementById("scheda").style.display === "block") apri(scelta, true);
+}
+
+function disegnaTutte() {
+  const q = document.getElementById("cerca").value.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const fs = document.getElementById("filtroStato").value, ft = document.getElementById("filtroTipo").value;
+  let S = (dati.sorgenti || []).filter(r => (!q || r.nome.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q) || r.id.toLowerCase().includes(q))
+    && (!fs || r.stato === fs) && (!ft || r.tipo === ft));
+  S.sort((a, b) => {
+    let x = a[ordinaPer], y = b[ordinaPer];
+    if (ordinaPer === "stato") { x = ORDINE[x]; y = ORDINE[y]; }
+    if (x === null || x === undefined) return 1; if (y === null || y === undefined) return -1;
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * verso;
+  });
+  document.getElementById("contaTutte").textContent = `${S.length} di ${(dati.sorgenti || []).length}`;
+  document.getElementById("tutte").innerHTML = S.map(r => riga(r, true)).join("");
+}
+document.getElementById("cerca").oninput = disegnaTutte;
+document.getElementById("filtroStato").onchange = disegnaTutte;
+document.getElementById("filtroTipo").onchange = disegnaTutte;
+document.querySelectorAll("th[data-c]").forEach(th => th.onclick = () => {
+  const c = th.dataset.c; verso = (ordinaPer === c) ? -verso : (["oggi", "rapporto", "abituale", "ultimo_mjd"].includes(c) ? -1 : 1);
+  ordinaPer = c; disegnaTutte();
+});
+
+// --- scheda di una sorgente ---
+let giorni = 365;
+function apri(id, soloTesto) {
+  const r = perId[id]; if (!r) return; scelta = id;
+  document.getElementById("schedaNome").textContent = r.nome;
+  document.getElementById("schedaTipo").textContent = `${r.tipo} · ${STATI[r.stato] || ""} · ${r.id}`;
+  document.getElementById("spiegazione").textContent = (r.spiegazione || "Ancora nessun dato.") +
+    (r.gbm_2550 ? "" : "") + "\n\nIn alto la luminosità giorno per giorno (MAXI 2–20 keV in blu, Fermi GBM 25–50 keV in arancio, " +
+    "storia di Swift/BAT in viola); in basso a sinistra la durezza dello spettro; in basso a destra il diagramma " +
+    "durezza-intensità (la stella rossa è l'ultimo giorno). Le scritte del grafico sono in inglese.";
+  if (!soloTesto) document.getElementById("schedaGrafico").src = `grafico/${id}.png?giorni=${giorni}&t=${Date.now()}`;
+  const q = encodeURIComponent('"' + r.nome + '"');
+  document.getElementById("schedaLink").innerHTML =
+    `<a href="https://maxi.riken.jp/star_data/${r.id}/${r.id}.html" target="_blank" rel="noopener">Pagina MAXI</a>` +
+    `<a href="https://gcn.nasa.gov/circulars?query=${q}" target="_blank" rel="noopener">Circolari GCN</a>` +
+    `<a href="https://www.google.com/search?q=site%3Aastronomerstelegram.org+${q}" target="_blank" rel="noopener">Cerca negli ATel</a>` +
+    `<a href="dati/maxi/${r.id}_1day.dat" target="_blank">Dati MAXI (testo)</a>`;
+  const nn = notizie.filter(x => (x.sorgenti || []).includes(id)).reverse();
+  document.getElementById("schedaNotizie").innerHTML = nn.length ? "<b>Notizie che la citano:</b>" + nn.map(x =>
+    `<div class="notizia"><a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.titolo)}</a>
+     <div class="data">${esc(x.fonte)} · ${esc((x.data || "").slice(0, 10))}</div></div>`).join("") : "";
+  document.getElementById("scheda").style.display = "block";
+}
+function chiudiScheda() { document.getElementById("scheda").style.display = "none"; scelta = null; }
+document.getElementById("scheda").onclick = e => { if (e.target.id === "scheda") chiudiScheda(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") chiudiScheda(); });
+document.querySelectorAll("#periodi button").forEach(b => b.onclick = () => {
+  giorni = parseInt(b.dataset.g);
+  document.querySelectorAll("#periodi button").forEach(x => x.classList.toggle("attivo", x === b));
+  if (scelta) document.getElementById("schedaGrafico").src = `grafico/${scelta}.png?giorni=${giorni}&t=${Date.now()}`;
+});
+
+aggiorna();
+setInterval(aggiorna, 5 * 60 * 1000);
+</script>
+</body>
+</html>

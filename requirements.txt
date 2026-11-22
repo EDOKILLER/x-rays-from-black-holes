@@ -1,0 +1,3 @@
+# Server (nas/) and desktop app (pc/). The desktop app also needs tkinter (Ubuntu: python3-tk).
+numpy
+matplotlib

@@ -1,0 +1,31 @@
+# Raggi X dai buchi neri 1.0 - servizio per NAS UGREEN (app Docker -> Progetto -> Crea)
+# © 2026 Edoardo Battistel
+#
+# DA CONTROLLARE:
+#  - il percorso a sinistra dei ":" in "volumes" deve essere la cartella Raggi_X vista dal NAS
+#    (scritto come per Il Sole: /volume1/Ugreen NAS/Raggi_X);
+#  - la porta 8097 (a sinistra in "ports") deve essere libera sul NAS (8095 = Il Sole,
+#    8096 = riservata a PICTOR); se è occupata cambiala e usala nel browser e sul PC.
+services:
+  raggi-x:
+    image: python:3.12
+    container_name: raggi-x
+    restart: unless-stopped
+    command: ["bash", "/dati/programma/avvia.sh"]
+    volumes:
+      - "/volume1/Ugreen NAS/Raggi_X:/dati"
+    ports:
+      - "8097:8000"        # pagina dei risultati: http://<indirizzo del NAS>:8097
+    environment:
+      - TZ=Europe/Rome
+    # --- lavoro leggero: ~20 minuti ogni 6 ore per MAXI, pochi minuti per il resto ---
+    cpus: 1.0
+    cpu_shares: 2
+    mem_limit: 1g
+    blkio_config:
+      weight: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"

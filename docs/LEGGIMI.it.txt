@@ -1,0 +1,158 @@
+RAGGI X DAI BUCHI NERI 1.1
+==========================
+© 2026 Edoardo Battistel
+
+NOVITÀ DELLA 1.1 (19/11/2026)
+  - MAXI a volte attacca un commento al nome («GX 354-0_Slow-Burster with
+    Rapid-Burster»): ora il nome è solo «GX 354-0» e il commento va nella spiegazione.
+  - Nota per GX 354-0 e H 1730-333: MAXI non separa bene lo Slow Burster dal
+    Rapid Burster (1,5° di distanza); un aumento di GX 354-0 è quasi sempre il
+    Rapid Burster, che si accende ogni 80-105 giorni.
+  - Notifica in italiano corretto: «Binaria X. In esplosione dal …».
+  - Notizie abbinate anche con i nomi alternativi (MXB 1730-335, Rapid Burster,
+    RX J0440.9+4431, 4U 1728-34, …).
+
+AGGIORNARE DALLA 1.0 (servizio già sul NAS e parte del PC già installata)
+  NAS: in Raggi_X/programma/ sostituisci  servizio_rx.py  e  motore_rx.py  con
+       quelli di versione_1.1/nas (gli altri file non cambiano), poi
+       app Docker -> Container -> raggi-x -> Riavvia.
+       Le librerie NON vengono reinstallate; al riavvio le schede si rifanno
+       subito con i nomi nuovi (registro: «Schede rifatte con i nomi nuovi: …»).
+  PC:  cd ~/Claude/Astropy/programma_raggi_x/versione_1.1/pc
+       bash installa.sh        (conferma l'indirizzo; riavvia anche l'avvisatore)
+  Le esplosioni già segnalate non vengono avvisate una seconda volta.
+
+Segue il cielo X variabile: binarie X con buchi neri e stelle di neutroni, pulsar X,
+galassie attive. Dice quando una sorgente «esplode» (si accende il disco di gas attorno
+all'oggetto compatto) e da quando, e lo fa sapere al PC.
+
+  NAS (Docker, a priorità minima):
+    - ogni 6 ore aggiorna le curve di luce MAXI (2-20 keV, dalla Stazione Spaziale)
+      di tutte le ~457 sorgenti del suo elenco (prima volta: 20-30 minuti);
+    - ogni giorno le curve Fermi GBM (raggi X duri, 219 sorgenti);
+    - una volta sola la storia di Swift/BAT (Swift ha finito di osservare il 20/10/2026);
+    - ogni 30 minuti le notizie ATel e le circolari GCN, abbinate alle sorgenti citate;
+    - pagina dei risultati in italiano:  http://192.168.1.135:8097
+      (nuove esplosioni, sorgenti accese, preferite, mappa del cielo X, notizie,
+      tutte le sorgenti con ricerca e filtri; clic su una sorgente = scheda con grafico).
+  PC:
+    - la finestra «Raggi X dai buchi neri»: prende dal NAS lo stato di tutte le sorgenti
+      e le curve; se il NAS non risponde (fuori casa) va direttamente agli archivi;
+    - l'avvisatore: notifica di Ubuntu per ogni NUOVA esplosione (accesa da meno di
+      3 settimane e almeno 30 mCrab), con il pulsante «Apri la pagina».
+
+Grafici e mappa sono in inglese; pagina, finestra e spiegazioni in italiano.
+Spazio sul NAS: circa 0,5 GB (curve di luce e notizie), cresce di poco nel tempo.
+
+Contenuto di questa versione:
+    nas/   servizio_rx.py  motore_rx.py  index.html  avvia.sh  requisiti.txt  docker-compose.yml
+    pc/    raggi_x_pc.py  motore_rx.py  avvisatore_rx.py  installa.sh  raggi_x.png  crea_icona.py
+
+
+0. (FACOLTATIVO, CONSIGLIATO) PROVA DEL SERVIZIO SUL PC, CON I DATI VERI
+-----------------------------------------------------------------------
+Prima di toccare il NAS puoi fare un giro con 25 sorgenti sul PC:
+    cd ~/Claude/Astropy/programma_raggi_x/versione_1.1/nas
+    python3 servizio_rx.py --prova
+        (prova senza rete: deve finire con «PROVA SERVIZIO SUPERATA»)
+    python3 servizio_rx.py ~/Scrivania/Astronomia/RaggiX_prova --una-volta --max 25
+        (2-4 minuti: MAXI, Fermi GBM, Swift/BAT e notizie per 25 sorgenti, poi esce)
+    python3 servizio_rx.py ~/Scrivania/Astronomia/RaggiX_prova --solo-pagina
+        (poi apri nel browser http://localhost:8097 ; Ctrl+C nel terminale per finire)
+Poi la cartella RaggiX_prova si può cancellare.
+
+
+1. COPIA I FILE SUL NAS
+-----------------------
+Nella stessa cartella condivisa dove ci sono Sole ed Exoplanet_Searcher crea una cartella
+    Raggi_X
+e dentro una sottocartella  programma  con i sei file della cartella nas:
+    Raggi_X/
+        programma/
+            servizio_rx.py  motore_rx.py  index.html  avvia.sh  requisiti.txt  docker-compose.yml
+(docker-compose.yml lì serve solo come promemoria.)
+
+
+2. CREA IL PROGETTO NELL'APP DOCKER
+-----------------------------------
+  1. App Docker di UGOS -> Progetto -> Crea.
+  2. Nome del progetto: raggi-x
+  3. Incolla tutto il contenuto di docker-compose.yml.
+  4. Controlla le due righe:
+       - "/volume1/Ugreen NAS/Raggi_X:/dati"     (come per Il Sole)
+       - "8097:8000"                             (porta della pagina; 8095 è Il Sole)
+  5. Distribuisci (Deploy).
+L'immagine python:3.12 è già sul NAS (la usano Il Sole ed Exoplanet Searcher).
+
+
+3. CONTROLLA CHE PARTA
+----------------------
+App Docker -> Container -> raggi-x -> Registro (Log):
+  - primo avvio: «Primo avvio: installo le librerie (2-5 minuti…)»;
+  - poi «Pagina web attiva sulla porta 8000…», «Elenco MAXI: 457 sorgenti; 1 Crab = … ph/s/cm²»;
+  - dopo 20-30 minuti «Giro MAXI finito: …», poi «Giro Fermi GBM finito: …».
+La pagina si riempie mentre lavora (ogni 25 sorgenti). La storia di Swift/BAT arriva
+a poco a poco (40 sorgenti ogni 5 minuti, circa un'ora in tutto).
+Nella cartella Raggi_X compaiono: index.html, mappa.png, registro.txt, rx_config.json,
+rx_stato.json e le cartelle dati/ (curve di luce e notizie) e grafici/.
+
+
+4. PARTE DEL PC (UBUNTU)
+------------------------
+    cd ~/Claude/Astropy/programma_raggi_x/versione_1.1/pc
+    bash installa.sh
+Ti chiede l'indirizzo della pagina (proposto: http://192.168.1.135:8097), poi:
+  - nel menu e sulla Scrivania compare «Raggi X dai buchi neri» (icona: buco nero con
+    il disco di gas dorato, due getti azzurri e una X dorata, fondo blu notte);
+  - l'avvisatore parte subito e a ogni accesso: ogni 10 minuti chiede al NAS se ci
+    sono nuove esplosioni; avvisa anche se il servizio non si aggiorna da 12 ore.
+Prove:
+    RaggiX --autotest                                         (finestra: «TUTTO OK»)
+    python3 ~/.local/share/raggi_x/avvisatore_rx.py --prova   (notifica di prova)
+Cambiare l'indirizzo del NAS:
+    python3 ~/.local/share/raggi_x/avvisatore_rx.py --indirizzo
+Se l'icona nella barra mostra un ingranaggio: xwininfo -root -tree | grep -i raggi
+(la classe della finestra deve essere «Raggix»).
+
+
+5. OPZIONI (rx_config.json, nella cartella Raggi_X del NAS)
+-----------------------------------------------------------
+  "ore_tra_aggiornamenti_maxi": 6
+  "ore_tra_aggiornamenti_gbm": 24
+  "minuti_tra_notizie": 30
+  "secondi_tra_richieste": 1.0        (pausa tra due file, per non disturbare gli archivi)
+  "soglia_avviso_mCrab": 30           (quanto deve brillare una NUOVA esplosione per l'avviso)
+  "giorni_per_dire_nuova": 21         (fino a quanti giorni dall'inizio un'esplosione è «nuova»)
+  "swift_bat_al_giro": 40
+Dopo una modifica: app Docker -> Container -> raggi-x -> Riavvia.
+
+
+6. FERMARE, AGGIORNARE
+----------------------
+  - Fermare: app Docker -> Container -> Ferma. Al riavvio riprende da dove era
+    (i file già scaricati non vengono riscaricati se non sono cambiati).
+  - Nuova versione: sostituisci i file in programma/ e riavvia il container.
+    Per reinstallare le librerie cancella programma/_python.
+
+
+COME SI LEGGE
+-------------
+  - Oggi = media degli ultimi 3 giorni (2-20 keV), in mCrab = millesimi della Nebulosa
+    del Granchio, la «candela» standard dei raggi X. Di solito = livello abituale
+    nell'ultimo anno. × = quante volte più del solito.
+  - NUOVA ESPLOSIONE: accesa da meno di 3 settimane. In esplosione: da più tempo
+    (es. H 1743-322: dal 14/08/2026, picco di ~950 mCrab il 24/08).
+  - Dati vecchi: MAXI non la misura da più di 14 giorni (non osserva tutto il cielo
+    ogni giorno: Her X-1 e Mrk 421 sono rimaste senza misure dal 7 al 17 novembre).
+  - Durezza = raggi X 4-10 keV / 2-4 keV. Un buco nero in esplosione parte duro,
+    diventa morbido (domina il disco caldissimo) e torna duro mentre si spegne.
+
+
+NOTE
+----
+  - Fermi GBM: dalla rete di casa l'IPv6 verso i server della NASA di Huntsville
+    non funziona (90 s di attesa); il programma usa solo IPv4 (0,6 s).
+  - Ogni richiesta in rete ha un tempo massimo; se un archivio non risponde il servizio
+    aspetta (da 1 a 30 minuti) e riprova la stessa sorgente invece di saltarla.
+  - Dati: MAXI (RIKEN/JAXA), Fermi GBM (NASA/MSFC), Swift/BAT Transient Monitor (NASA),
+    The Astronomer's Telegram, GCN (NASA).

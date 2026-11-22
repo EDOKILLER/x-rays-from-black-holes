@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+# data and state written when running the server in a local folder
+dati/
+grafici/
+_python/
+_home/
+mappa.png
+mappa.tmp.png
+registro*.txt
+rx_config.json
+rx_stato.json
+# outputs of the network check
+tools/campioni/
+tools/risultati_prova_rete.txt
+diagnostica.txt

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and credit the data providers (see docs/data-sources.md)."
+title: "X-rays from Black Holes (Raggi X dai buchi neri): an X-ray outburst monitor for black holes and neutron stars"
+authors:
+  - family-names: Battistel
+    given-names: Edoardo
+version: "1.1"
+date-released: 2026-11-19
+license: BSD-3-Clause
+repository-code: "https://github.com/EDOKILLER/x-rays-from-black-holes"
+keywords:
+  - astronomy
+  - X-ray astronomy
+  - X-ray binaries
+  - black holes
+  - MAXI
+  - Fermi GBM
+  - light curves
